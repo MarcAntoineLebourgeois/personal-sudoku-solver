@@ -28,17 +28,26 @@ empty_board = [
 ]
 
 def solver ():
-    # print input board
-    # print_sudoku(boardTemplate)
+    # find all candidates
     for row in range(0,9):
         for column in range(0,9):
             cell = board_template[row][column]
             if cell > 0:
-                append_empty_board_candidates("na",row,column)
+                append_empty_board_candidates([],row,column)
             else:
                 candidates = find_all_cell_candidates(board_template,row,column)
                 append_empty_board_candidates(candidates, row, column)
-    print("empty_board",print_sudoku(empty_board))
+    
+    # fill the board if only one possibily in empty_board
+    for row in range(0,9):
+        for column in range(0,9):
+            candidate = empty_board[row][column][0]
+            if len(candidate) == 1:
+                board_template[row][column] = candidate[0] 
+
+
+    #print("empty_board",print_sudoku(empty_board))
+    print("board_template",print_sudoku(board_template))
 
 
 def append_empty_board_candidates(candidates, row, column):
