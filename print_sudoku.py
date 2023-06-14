@@ -1,5 +1,4 @@
 def print_sudoku(board):
-    print("Input sudoku")
     for i in range(9):
         # Print horizontal lines after every third row
         if i % 3 == 0 and i != 0:
