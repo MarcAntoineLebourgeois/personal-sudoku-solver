@@ -8,6 +8,8 @@ from get_grid import get_grid
 from column_numbers_to_check_within_the_grid import column_numbers_to_check_within_the_grid
 from is_candidate_unique_in_its_column import is_candidate_unique_in_its_column
 from is_candidate_in_both_other_column import is_candidate_in_both_other_column
+from flatten_unique import flatten_unique
+from get_grid_rows_index_by_row import get_grid_rows_index_by_row
 
 grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -24,15 +26,15 @@ grid = [
 
 # Exemple of a sudoku grid
 board_template = [
-    [0, 0, 0, 0, 6, 0, 0, 0, 4],
-    [0, 0, 0, 4, 2, 9, 0, 8, 5],
-    [0, 1, 0, 3, 0, 8, 0, 0, 2],
-    [0, 7, 0, 0, 8, 4, 0, 3, 1],
-    [0, 0, 0, 0, 0, 0, 6, 0, 0],
-    [5, 4, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 7, 0, 3, 0, 0, 0, 6],
-    [0, 9, 0, 7, 0, 5, 2, 0, 0],
-    [0, 0, 0, 1, 0, 6, 0, 0, 3]
+    [5, 0, 0, 0, 0, 0, 0, 0, 9],
+    [0, 0, 9, 3, 0, 0, 0, 0, 0],
+    [0, 2, 7, 0, 0, 0, 1, 0, 0],
+    [4, 0, 0, 5, 0, 0, 3, 0, 8],
+    [0, 1, 0, 0, 0, 6, 0, 5, 7],
+    [0, 0, 3, 0, 0, 0, 9, 0, 0],
+    [9, 0, 0, 0, 4, 5, 0, 0, 3],
+    [1, 0, 0, 0, 7, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 6, 0, 5]
 ]
 
 empty_board = [
@@ -69,7 +71,39 @@ def fill_candidates():
             else:
                 candidates = find_all_cell_candidates(board_template,row,column)
                 append_board(candidates_board, candidates, row, column)
-    #print("candidates_board",print_sudoku(candidates_board))
+    # now, we need another famous technique:
+    # candidates forming a row or a column can remove other grid possibilities
+    # it will consist only into complexify the fill_candidates function
+    for row in range(0,9):
+        for column in range(0,9):
+            current_grid_number = get_grid_number(row, column)
+            current_grid = get_grid(candidates_board, current_grid_number)
+            # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
+            def get_column_formed_by_candidate(candidate):
+                column1_candidates = flatten_unique([current_grid[0][0],current_grid[1][0],current_grid[2][0]])
+                column2_candidates = flatten_unique([current_grid[0][1],current_grid[1][1],current_grid[2][1]])
+                column3_candidates = flatten_unique([current_grid[0][2],current_grid[1][2],current_grid[2][2]])
+                if candidate in column1_candidates and candidate not in column2_candidates and candidate not in column3_candidates:
+                    return 1
+                elif candidate not in column1_candidates and candidate in column2_candidates and candidate not in column3_candidates:
+                    return 2
+                elif candidate not in column1_candidates and candidate not in column2_candidates and candidate in column3_candidates:
+                    return 3
+                else:
+                    return None
+
+            candidates = candidates_board[row][column]
+            for candidate in candidates:
+                formed_column = get_column_formed_by_candidate(candidate)
+                all_rows = list(range(9))
+                rows_to_remove = get_grid_rows_index_by_row(row)
+                rows_to_parse = [x for x in all_rows if x not in rows_to_remove]
+                if (formed_column != None):
+                    # TODO: careful, works only for test!!!!!
+                    for candidates_board_row in rows_to_parse:
+                        if candidate in candidates_board[candidates_board_row][column]: 
+                            candidates_board[candidates_board_row][column].remove(candidate)
+
     return candidates_board
 
 
@@ -86,7 +120,6 @@ def solver():
                     # fill the board if only one possibily in candidates_board
                     board_template[row][column] = cell_candidates[0]
                     solver()
-    
     fill_one_possibility_board()
 
     def fill_one_possibility_grid():
@@ -116,18 +149,12 @@ def solver():
                     board_template[item_row][item_column] = unique_item
                     solver()
                     continue
-            
     fill_one_possibility_grid()
     
     # now, what I need to do is to eliminate candidates based on the other grids
     # such as, if col1 and col3 have the same number in grid 4 and 7
     # then the number in obviously in column 2 in grid 1
     # we will call this technique, other_grids_solver
-
-
-
-
-
     def other_grids_solver():
         candidates_board = fill_candidates()
         #print("candidates_board",print_sudoku(candidates_board))
@@ -153,12 +180,11 @@ def solver():
                         if (should_fill_candidate == True):
                             board_template[row][column] = candidate
                             solver()
-
     other_grids_solver()
-    #print("candidates_board",print_sudoku(candidates_board))
+    
+
     candidates_board = fill_candidates()
     print("candidates_board",print_sudoku(candidates_board))
-
 
     print("output",print_sudoku(board_template))
     #print("board_template",print_sudoku(board_template))

@@ -1,10 +1,24 @@
 
 def get_grid_number(row, column):
-    grid_row = row // 3  # Calcul de la rangée de la grille
-    grid_column = column // 3  # Calcul de la colonne de la grille
-    grid_number = grid_row * 3 + grid_column + 1  # Calcul du numéro de la grille
-    if grid_row == 1:
-        grid_number += 2
-    elif grid_row == 2:
-        grid_number -= 2
-    return grid_number
+    #if (row < 3 and column < 3):
+    #    return 1
+    #if (row < 6 and column < 3):
+    #    return 4
+    #if (row < 9 and column < 3):
+    #    return 7
+    #if (row < 3 and column < 6):
+    #    return 2
+    #if (row < 3 and column < 9):
+    #    return 3
+    #if (row < 6 and column < 6):
+    #    return 5
+    #if (row < 6 and column < 9):
+    #    return 6
+    #if (row < 9 and column < 6):
+    #    return 8
+    #if (row < 9 and column < 9):
+    #    return 9
+    row_number = row // 3
+    column_number = column // 3
+    grid_number = row_number * 3 + column_number
+    return grid_number + 1
