@@ -7,7 +7,7 @@ def print_sudoku(board):
         for j in range(9):
             # Print vertical lines after every third column
             if j % 3 == 0 and j != 0:
-                print("|", end=" ")
+                print(".", end=" ")
             
             # Print the cell value or a placeholder for an empty cell
             if board[i][j] == 0:
