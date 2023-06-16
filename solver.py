@@ -3,13 +3,15 @@ from find_all_cell_candidates import find_all_cell_candidates
 from flatten_list import flatten_list
 from find_unique_item import find_unique_item
 from get_grid_number import get_grid_number
-from get_adjacent_grids import get_first_vertical_adjacent_grid, get_second_vertical_adjacent_grid
+from get_adjacent_grids import get_first_vertical_adjacent_grid, get_second_vertical_adjacent_grid, get_first_horizontal_adjacent_grid, get_second_horizontal_adjacent_grid
 from get_grid import get_grid
-from column_numbers_to_check_within_the_grid import column_numbers_to_check_within_the_grid
+from column_or_row_numbers_to_check_within_the_grid import column_or_row_numbers_to_check_within_the_grid
 from is_candidate_unique_in_its_column import is_candidate_unique_in_its_column
 from is_candidate_in_both_other_column import is_candidate_in_both_other_column
 from flatten_unique import flatten_unique
 from get_grid_rows_index_by_row import get_grid_rows_index_by_row
+from is_candidate_unique_in_its_row import is_candidate_unique_in_its_row
+from is_candidate_in_both_other_row import is_candidate_in_both_other_row
 
 grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -80,7 +82,6 @@ def fill_candidates():
             current_grid = get_grid(candidates_board, current_grid_number)
             candidates = candidates_board[row][column]
 
-            #IMPORTANT NEXT: TODO: Do the same thing but with rows
 
             # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
             def get_column_formed_by_candidate(candidate):
@@ -115,7 +116,6 @@ def fill_candidates():
                 rows_to_remove = get_grid_rows_index_by_row(row)
                 rows_to_parse = [x for x in all_rows if x not in rows_to_remove]
                 if (formed_column != None):
-                    # TODO: careful, works only for test!!!!!
                     for candidates_board_row in rows_to_parse:
                         if candidate in candidates_board[candidates_board_row][column]: 
                             candidates_board[candidates_board_row][column].remove(candidate)
@@ -125,7 +125,6 @@ def fill_candidates():
                 columns_to_remove = get_grid_rows_index_by_row(column)
                 columns_to_parse = [x for x in all_columns if x not in columns_to_remove]
                 if (formed_row != None):
-                    # TODO: careful, works only for test!!!!!
                     for candidates_board_column in columns_to_parse:
                         if candidate in candidates_board[row][candidates_board_column]: 
                             candidates_board[row][candidates_board_column].remove(candidate)
@@ -190,8 +189,9 @@ def solver():
                 cell_candidates = candidates_board[row][column]
                 if len(cell_candidates) > 0:
                     for candidate in cell_candidates:
-                        columns_to_check = column_numbers_to_check_within_the_grid(column)
                         grid_number = get_grid_number(row, column)
+                        #columns check
+                        columns_to_check = column_or_row_numbers_to_check_within_the_grid(column)
                         first_vertical_adjacent_grid_number = get_first_vertical_adjacent_grid(grid_number)
                         first_grid_candidates = get_grid(candidates_board,first_vertical_adjacent_grid_number)
                         second_vertical_adjacent_grid_number = get_second_vertical_adjacent_grid(grid_number)
@@ -205,6 +205,22 @@ def solver():
                         if (should_fill_candidate == True):
                             board_template[row][column] = candidate
                             solver()
+
+                        if (row == 4 and column == 4 and candidate == 7):
+                            #rows check
+                            rows_to_check = column_or_row_numbers_to_check_within_the_grid(row)
+                            first_horizontal_adjacent_grid_number = get_first_horizontal_adjacent_grid(grid_number)
+                            first_grid_candidates = get_grid(candidates_board,first_horizontal_adjacent_grid_number)
+                            second_horizontal_adjacent_grid_number = get_second_horizontal_adjacent_grid(grid_number)
+                            second_grid_candidates = get_grid(candidates_board,second_horizontal_adjacent_grid_number)
+                            #1: check if the candidate is alone in its row
+                            is_candidate_unique = is_candidate_unique_in_its_row(candidates_board, candidate, row)
+                            #2: if true, check if at least same candidate in other rows of horizontal grids
+                            is_candidate_in_both_other_grids_rows = is_candidate_in_both_other_row(first_grid_candidates,rows_to_check, candidate) and is_candidate_in_both_other_row(second_grid_candidates,rows_to_check, candidate)
+                            should_fill_candidate = is_candidate_unique and is_candidate_in_both_other_grids_rows
+                            if (should_fill_candidate == True):
+                                board_template[row][column] = candidate
+                                solver()
     other_grids_solver()
     
 
