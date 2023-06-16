@@ -12,6 +12,7 @@ from flatten_unique import flatten_unique
 from get_grid_rows_index_by_row import get_grid_rows_index_by_row
 from is_candidate_unique_in_its_row import is_candidate_unique_in_its_row
 from is_candidate_in_both_other_row import is_candidate_in_both_other_row
+from is_cell_valid import is_cell_valid
 
 grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -28,15 +29,15 @@ grid = [
 
 # Exemple of a sudoku grid
 board_template = [
-    [0, 0, 1, 0, 0, 4, 0, 7, 0],
-    [6, 4, 0, 2, 0, 0, 0, 0, 0],
-    [8, 0, 0, 0, 1, 0, 5, 0, 9],
-    [4, 0, 0, 0, 0, 2, 0, 0, 0],
-    [0, 0, 0, 1, 9, 0, 0, 8, 0],
-    [0, 0, 0, 7, 0, 0, 3, 0, 0],
-    [3, 0, 0, 5, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 7, 6, 0],
-    [9, 0, 0, 0, 7, 8, 4, 0, 0]
+    [0, 9, 0, 0, 0, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0, 5, 0, 8, 0],
+    [0, 0, 8, 4, 0, 0, 0, 1, 0],
+    [0, 0, 6, 0, 0, 1, 3, 0, 5],
+    [0, 5, 0, 0, 0, 9, 7, 0, 6],
+    [4, 0, 0, 2, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 2, 0, 0, 9],
+    [7, 3, 4, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 6, 0, 0, 0, 0]
 ]
 
 empty_board = [
@@ -142,6 +143,7 @@ def solver():
                 cell_candidates = candidates_board[row][column]
                 if len(cell_candidates) == 1:
                     # fill the board if only one possibily in candidates_board
+                    is_cell_valid(board_template, row, column, cell_candidates[0])
                     board_template[row][column] = cell_candidates[0]
                     solver()
     fill_one_possibility_board()
@@ -170,6 +172,7 @@ def solver():
 
 
                     [item_row, item_column] = find_unique_item_position()
+                    is_cell_valid(board_template, item_row, item_column, unique_item)
                     board_template[item_row][item_column] = unique_item
                     solver()
                     continue
@@ -203,24 +206,25 @@ def solver():
                         
                         should_fill_candidate = is_candidate_unique and is_candidate_in_both_other_grids_columns
                         if (should_fill_candidate == True):
+                            is_cell_valid(board_template, row, column, candidate)
                             board_template[row][column] = candidate
                             solver()
 
-                        if (row == 4 and column == 4 and candidate == 7):
-                            #rows check
-                            rows_to_check = column_or_row_numbers_to_check_within_the_grid(row)
-                            first_horizontal_adjacent_grid_number = get_first_horizontal_adjacent_grid(grid_number)
-                            first_grid_candidates = get_grid(candidates_board,first_horizontal_adjacent_grid_number)
-                            second_horizontal_adjacent_grid_number = get_second_horizontal_adjacent_grid(grid_number)
-                            second_grid_candidates = get_grid(candidates_board,second_horizontal_adjacent_grid_number)
-                            #1: check if the candidate is alone in its row
-                            is_candidate_unique = is_candidate_unique_in_its_row(candidates_board, candidate, row)
-                            #2: if true, check if at least same candidate in other rows of horizontal grids
-                            is_candidate_in_both_other_grids_rows = is_candidate_in_both_other_row(first_grid_candidates,rows_to_check, candidate) and is_candidate_in_both_other_row(second_grid_candidates,rows_to_check, candidate)
-                            should_fill_candidate = is_candidate_unique and is_candidate_in_both_other_grids_rows
-                            if (should_fill_candidate == True):
-                                board_template[row][column] = candidate
-                                solver()
+                        #rows check
+                        rows_to_check = column_or_row_numbers_to_check_within_the_grid(row)
+                        first_horizontal_adjacent_grid_number = get_first_horizontal_adjacent_grid(grid_number)
+                        first_grid_candidates = get_grid(candidates_board,first_horizontal_adjacent_grid_number)
+                        second_horizontal_adjacent_grid_number = get_second_horizontal_adjacent_grid(grid_number)
+                        second_grid_candidates = get_grid(candidates_board,second_horizontal_adjacent_grid_number)
+                        #1: check if the candidate is alone in its row
+                        is_candidate_unique = is_candidate_unique_in_its_row(candidates_board, candidate, row)
+                        #2: if true, check if at least same candidate in other rows of horizontal grids
+                        is_candidate_in_both_other_grids_rows = is_candidate_in_both_other_row(first_grid_candidates,rows_to_check, candidate) and is_candidate_in_both_other_row(second_grid_candidates,rows_to_check, candidate)
+                        should_fill_candidate = is_candidate_unique and is_candidate_in_both_other_grids_rows
+                        if (should_fill_candidate == True):
+                            is_cell_valid(board_template, row, column, candidate)
+                            board_template[row][column] = candidate
+                            solver()
     other_grids_solver()
     
 
