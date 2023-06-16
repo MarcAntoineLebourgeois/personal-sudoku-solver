@@ -127,6 +127,8 @@ def fill_candidates():
                     #print('!!!!!!!!!!!!!!!!all_grid_flatten_candidates modified',all_grid_flatten_candidates)
                     #5 : get back to grid format
                     #6 : insert modified grid into the candidates board
+
+
     remove_candidates_if_formed_couples()
 
     # now, we need another famous technique:
@@ -168,12 +170,9 @@ def fill_candidates():
     def remove_formed_row_candidates():
         for row in range(0,9):
             for column in range(0,9):
-                candidates = candidates_board[row][column]
-                if (len(candidates) == 0):
-                    return
                 current_grid_number = get_grid_number(row, column)
                 current_grid = get_grid(candidates_board, current_grid_number)
-
+                candidates = candidates_board[row][column]
                 # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
                 def get_row_formed_by_candidate(candidate):
                     row1_candidates = flatten_unique([current_grid[0][0],current_grid[0][1],current_grid[0][2]])
@@ -198,20 +197,8 @@ def fill_candidates():
                             if candidate in candidates_board[row][candidates_board_column]: 
                                 print(candidate, "is removed from candidate row", row, "column",candidates_board_column)
                                 candidates_board[row][candidates_board_column].remove(candidate)
+
     remove_formed_row_candidates()
-
-    def remove_formed_double_row_candidates():
-        for row in range(9):
-            for column in range(9):
-                candidates = candidates_board[row][column]
-                if (len(candidates) == 0):
-                    return
-                current_grid_number = get_grid_number(row, column)
-                current_grid = get_grid(candidates_board, current_grid_number)
-                
-
-    #remove_formed_double_row_candidates()
-
     return candidates_board
 
 
