@@ -27,17 +27,29 @@ grid = [
 ]
 
 
+#unsolved = board_template = [
+#    [0, 9, 0, 0, 0, 0, 2, 0, 0],
+#    [0, 0, 0, 0, 0, 5, 0, 8, 0],
+#    [0, 0, 8, 4, 0, 0, 0, 1, 0],
+#    [0, 0, 6, 0, 0, 1, 3, 0, 5],
+#    [0, 5, 0, 0, 0, 9, 7, 0, 6],
+#    [4, 0, 0, 2, 0, 0, 0, 0, 0],
+#    [0, 0, 0, 0, 0, 2, 0, 0, 9],
+#    [7, 3, 4, 0, 0, 0, 0, 0, 0],
+#    [0, 0, 0, 0, 6, 0, 0, 0, 0]
+#]
+
 # Exemple of a sudoku grid
 board_template = [
-    [0, 9, 0, 0, 0, 0, 2, 0, 0],
-    [0, 0, 0, 0, 0, 5, 0, 8, 0],
-    [0, 0, 8, 4, 0, 0, 0, 1, 0],
-    [0, 0, 6, 0, 0, 1, 3, 0, 5],
-    [0, 5, 0, 0, 0, 9, 7, 0, 6],
-    [4, 0, 0, 2, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 2, 0, 0, 9],
-    [7, 3, 4, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 6, 0, 0, 0, 0]
+    [5, 0, 0, 0, 3, 2, 0, 0, 0],
+    [0, 0, 0, 7, 0, 0, 0, 0, 0],
+    [0, 0, 4, 0, 0, 0, 3, 5, 0],
+    [4, 0, 0, 6, 0, 0, 0, 0, 0],
+    [0, 0, 0, 2, 5, 0, 9, 0, 6],
+    [7, 0, 0, 9, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [2, 0, 8, 5, 0, 0, 0, 7, 0],
+    [0, 0, 3, 0, 0, 9, 0, 8, 0]
 ]
 
 empty_board = [
@@ -74,70 +86,129 @@ def fill_candidates():
             else:
                 candidates = find_all_cell_candidates(board_template,row,column)
                 append_board(candidates_board, candidates, row, column)
+
+                
+    # add a rule for removing all couples if alone on these cells
+    # example: 7,3 and 7,3 on two candidates cells => remove them elsewhere in the grid + row? + column?
+    def remove_candidates_if_formed_couples():
+        for row in range(0,9):
+            for column in range(0,9):
+                #1 : get the current grid
+                current_grid_number = get_grid_number(row, column)
+                current_grid = get_grid(candidates_board, current_grid_number)
+                
+                #2 : get the current grid flatten
+                all_grid_flatten_candidates = []
+                for item in current_grid:
+                    for candidates in item:
+                        all_grid_flatten_candidates.append(candidates)
+                #print('all_grid_flatten_candidates',all_grid_flatten_candidates)
+                #3 : find doublons of len 2
+                duplicates = []
+                for i in range(len(all_grid_flatten_candidates)):
+                    if all_grid_flatten_candidates[i] != [] and len(all_grid_flatten_candidates[i]) ==2:
+                            if all_grid_flatten_candidates.count(all_grid_flatten_candidates[i]) > 1 and all_grid_flatten_candidates[i] not in duplicates:
+                                duplicates.append(all_grid_flatten_candidates[i])
+
+                if (len(duplicates)>0):
+                    #print("current_grid",current_grid)
+                    duplicates = duplicates[0]
+                    #print("duplicates",duplicates)
+                    #4 : remove all figures of these doublons from other item in flatten
+                    modified_grid_flatten_candidates = []
+                    #print("INPUT",all_grid_flatten_candidates)
+                    for item in all_grid_flatten_candidates:
+                        for number_to_remove in duplicates:
+                            if item != duplicates and number_to_remove in item:
+                                modified_grid_flatten_candidates.append(item.remove(number_to_remove))
+                            else:
+                                modified_grid_flatten_candidates.append(item)
+
+                    #print('!!!!!!!!!!!!!!!!all_grid_flatten_candidates modified',all_grid_flatten_candidates)
+                    #5 : get back to grid format
+                    #6 : insert modified grid into the candidates board
+
+
+    remove_candidates_if_formed_couples()
+
     # now, we need another famous technique:
     # candidates forming a row or a column can remove other grid possibilities
-    # it will consist only into complexify the fill_candidates function
-    for row in range(0,9):
-        for column in range(0,9):
-            current_grid_number = get_grid_number(row, column)
-            current_grid = get_grid(candidates_board, current_grid_number)
-            candidates = candidates_board[row][column]
+    ## it will consist only into complexify the fill_candidates function
+    def remove_formed_column_candidates():
+        for row in range(0,9):
+            for column in range(0,9):
+                current_grid_number = get_grid_number(row, column)
+                current_grid = get_grid(candidates_board, current_grid_number)
+                candidates = candidates_board[row][column]
+                # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
+                def get_column_formed_by_candidate(candidate):
+                    column1_candidates = flatten_unique([current_grid[0][0],current_grid[1][0],current_grid[2][0]])
+                    column2_candidates = flatten_unique([current_grid[0][1],current_grid[1][1],current_grid[2][1]])
+                    column3_candidates = flatten_unique([current_grid[0][2],current_grid[1][2],current_grid[2][2]])
+                    if candidate in column1_candidates and candidate not in column2_candidates and candidate not in column3_candidates:
+                        return 1
+                    elif candidate not in column1_candidates and candidate in column2_candidates and candidate not in column3_candidates:
+                        return 2
+                    elif candidate not in column1_candidates and candidate not in column2_candidates and candidate in column3_candidates:
+                        return 3
+                    else:
+                        return None
+                   
+                for candidate in candidates:
+                    # columns check
+                    formed_column = get_column_formed_by_candidate(candidate)
+                    all_rows = list(range(9))
+                    rows_to_remove = get_grid_rows_index_by_row(row)
+                    rows_to_parse = [x for x in all_rows if x not in rows_to_remove]
+                    if (formed_column != None):
+                        for candidates_board_row in rows_to_parse:
+                            if candidate in candidates_board[candidates_board_row][column]: 
+                                candidates_board[candidates_board_row][column].remove(candidate)
 
+    remove_formed_column_candidates()
 
-            # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
-            def get_column_formed_by_candidate(candidate):
-                column1_candidates = flatten_unique([current_grid[0][0],current_grid[1][0],current_grid[2][0]])
-                column2_candidates = flatten_unique([current_grid[0][1],current_grid[1][1],current_grid[2][1]])
-                column3_candidates = flatten_unique([current_grid[0][2],current_grid[1][2],current_grid[2][2]])
-                if candidate in column1_candidates and candidate not in column2_candidates and candidate not in column3_candidates:
-                    return 1
-                elif candidate not in column1_candidates and candidate in column2_candidates and candidate not in column3_candidates:
-                    return 2
-                elif candidate not in column1_candidates and candidate not in column2_candidates and candidate in column3_candidates:
-                    return 3
-                else:
-                    return None
-            def get_row_formed_by_candidate(candidate):
-                row1_candidates = flatten_unique([current_grid[0][0],current_grid[0][1],current_grid[0][2]])
-                row2_candidates = flatten_unique([current_grid[1][0],current_grid[1][1],current_grid[1][2]])
-                row3_candidates = flatten_unique([current_grid[2][0],current_grid[2][1],current_grid[2][2]])
-                if candidate in row1_candidates and candidate not in row2_candidates and candidate not in row3_candidates:
-                    return 1
-                elif candidate not in row1_candidates and candidate in row2_candidates and candidate not in row3_candidates:
-                    return 2
-                elif candidate not in row1_candidates and candidate not in row2_candidates and candidate in row3_candidates:
-                    return 3
-                else:
-                    return None
-                
-            for candidate in candidates:
-                # columns check
-                formed_column = get_column_formed_by_candidate(candidate)
-                all_rows = list(range(9))
-                rows_to_remove = get_grid_rows_index_by_row(row)
-                rows_to_parse = [x for x in all_rows if x not in rows_to_remove]
-                if (formed_column != None):
-                    for candidates_board_row in rows_to_parse:
-                        if candidate in candidates_board[candidates_board_row][column]: 
-                            candidates_board[candidates_board_row][column].remove(candidate)
-                #rows check 
-                formed_row = get_row_formed_by_candidate(candidate)
-                all_columns = list(range(9))
-                columns_to_remove = get_grid_rows_index_by_row(column)
-                columns_to_parse = [x for x in all_columns if x not in columns_to_remove]
-                if (formed_row != None):
-                    for candidates_board_column in columns_to_parse:
-                        if candidate in candidates_board[row][candidates_board_column]: 
-                            candidates_board[row][candidates_board_column].remove(candidate)
+    def remove_formed_row_candidates():
+        for row in range(0,9):
+            for column in range(0,9):
+                current_grid_number = get_grid_number(row, column)
+                current_grid = get_grid(candidates_board, current_grid_number)
+                candidates = candidates_board[row][column]
+                # IMPORTANT: osef du numéro de la colonne vu qu'on parse chaque candidate
+                def get_row_formed_by_candidate(candidate):
+                    row1_candidates = flatten_unique([current_grid[0][0],current_grid[0][1],current_grid[0][2]])
+                    row2_candidates = flatten_unique([current_grid[1][0],current_grid[1][1],current_grid[1][2]])
+                    row3_candidates = flatten_unique([current_grid[2][0],current_grid[2][1],current_grid[2][2]])
+                    if candidate in row1_candidates and candidate not in row2_candidates and candidate not in row3_candidates:
+                        return 1
+                    elif candidate not in row1_candidates and candidate in row2_candidates and candidate not in row3_candidates:
+                        return 2
+                    elif candidate not in row1_candidates and candidate not in row2_candidates and candidate in row3_candidates:
+                        return 3
+                    else:
+                        return None
+
+                for candidate in candidates:
+                    formed_row = get_row_formed_by_candidate(candidate)
+                    if (formed_row != None):
+                        all_columns = list(range(9))
+                        columns_to_remove = get_grid_rows_index_by_row(column)
+                        columns_to_parse = [x for x in all_columns if x not in columns_to_remove]
+                        for candidates_board_column in columns_to_parse:
+                            if candidate in candidates_board[row][candidates_board_column]: 
+                                print(candidate, "is removed from candidate row", row, "column",candidates_board_column)
+                                candidates_board[row][candidates_board_column].remove(candidate)
+
+    remove_formed_row_candidates()
     return candidates_board
 
 
 
 def solver():
     #print("input",print_sudoku(board_template))
-
+    #print("candidates_board",print_sudoku(candidates_board))
+    candidates_board = fill_candidates()
+    
     def fill_one_possibility_board():
-        candidates_board = fill_candidates()
         for row in range(0,9):
             for column in range(0,9):
                 cell_candidates = candidates_board[row][column]
@@ -152,7 +223,6 @@ def solver():
         #find alone possibility in the grid
         for grid_row in [0,3,6]:
             for grid_column in [0,3,6]:
-                candidates_board = fill_candidates()
                 grid_candidates = []
                 for i in range(grid_row, grid_row + 3):
                     for j in range(grid_column, grid_column + 3):
@@ -183,7 +253,6 @@ def solver():
     # then the number in obviously in column 2 in grid 1
     # we will call this technique, other_grids_solver
     def other_grids_solver():
-        candidates_board = fill_candidates()
         #print("candidates_board",print_sudoku(candidates_board))
         #print("candidates_board",candidates_board)
         #starting with columns
@@ -227,7 +296,6 @@ def solver():
                             solver()
     other_grids_solver()
     
-
     candidates_board = fill_candidates()
     print("candidates_board",print_sudoku(candidates_board))
 
