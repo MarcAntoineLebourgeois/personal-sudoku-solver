@@ -48,15 +48,15 @@ grid = [
 
 # Exemple of a sudoku grid
 board_template = [
-    [5, 0, 0, 0, 3, 2, 0, 0, 0],
-    [0, 0, 0, 7, 0, 0, 0, 0, 0],
-    [0, 0, 4, 0, 0, 0, 3, 5, 0],
-    [4, 0, 0, 6, 0, 0, 0, 0, 0],
-    [0, 0, 0, 2, 5, 0, 9, 0, 6],
-    [7, 0, 0, 9, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [2, 0, 8, 5, 0, 0, 0, 7, 0],
-    [0, 0, 3, 0, 0, 9, 0, 8, 0],
+    [0, 0, 0, 5, 0, 0, 0, 9, 0],
+    [0, 3, 0, 0, 0, 0, 0, 0, 5],
+    [0, 0, 0, 8, 2, 7, 0, 0, 0],
+    [1, 0, 0, 4, 0, 6, 0, 0, 0],
+    [0, 9, 0, 0, 0, 0, 0, 7, 0],
+    [2, 8, 0, 0, 5, 0, 0, 0, 0],
+    [4, 0, 5, 0, 0, 0, 0, 0, 0],
+    [7, 0, 0, 0, 0, 0, 9, 0, 2],
+    [0, 0, 0, 0, 0, 0, 1, 5, 6],
 ]
 
 empty_board = [
@@ -94,58 +94,7 @@ def fill_candidates():
                 candidates = find_all_cell_candidates(board_template, row, column)
                 append_board(candidates_board, candidates, row, column)
 
-    # add a rule for removing all couples if alone on these cells
-    # example: 7,3 and 7,3 on two candidates cells => remove them elsewhere in the grid + row? + column?
-    def remove_candidates_if_formed_couples():
-        for row in range(0, 9):
-            for column in range(0, 9):
-                # 1 : get the current grid
-                current_grid_number = get_grid_number(row, column)
-                current_grid = get_grid(candidates_board, current_grid_number)
 
-                # 2 : get the current grid flatten
-                all_grid_flatten_candidates = []
-                for item in current_grid:
-                    for candidates in item:
-                        all_grid_flatten_candidates.append(candidates)
-                # print('all_grid_flatten_candidates',all_grid_flatten_candidates)
-                # 3 : find doublons of len 2
-                duplicates = []
-                for i in range(len(all_grid_flatten_candidates)):
-                    if (
-                        all_grid_flatten_candidates[i] != []
-                        and len(all_grid_flatten_candidates[i]) == 2
-                    ):
-                        if (
-                            all_grid_flatten_candidates.count(
-                                all_grid_flatten_candidates[i]
-                            )
-                            > 1
-                            and all_grid_flatten_candidates[i] not in duplicates
-                        ):
-                            duplicates.append(all_grid_flatten_candidates[i])
-
-                if len(duplicates) > 0:
-                    # print("current_grid",current_grid)
-                    duplicates = duplicates[0]
-                    # print("duplicates",duplicates)
-                    # 4 : remove all figures of these doublons from other item in flatten
-                    modified_grid_flatten_candidates = []
-                    # print("INPUT",all_grid_flatten_candidates)
-                    for item in all_grid_flatten_candidates:
-                        for number_to_remove in duplicates:
-                            if item != duplicates and number_to_remove in item:
-                                modified_grid_flatten_candidates.append(
-                                    item.remove(number_to_remove)
-                                )
-                            else:
-                                modified_grid_flatten_candidates.append(item)
-
-                    # print('!!!!!!!!!!!!!!!!all_grid_flatten_candidates modified',all_grid_flatten_candidates)
-                    # 5 : get back to grid format
-                    # 6 : insert modified grid into the candidates board
-
-    remove_candidates_if_formed_couples()
 
     # now, we need another famous technique:
     # candidates forming a row or a column can remove other grid possibilities
@@ -259,13 +208,6 @@ def fill_candidates():
                                 candidate
                                 in candidates_board[row][candidates_board_column]
                             ):
-                                print(
-                                    candidate,
-                                    "is removed from candidate row",
-                                    row,
-                                    "column",
-                                    candidates_board_column,
-                                )
                                 candidates_board[row][candidates_board_column].remove(
                                     candidate
                                 )
@@ -304,7 +246,26 @@ def fill_candidates():
         # for row in range(9):
         #    for column in range(9):
 
-    remove_double_formed_row_candidates()
+
+    # add a rule for removing all couples if alone on these cells
+    # example: 7,3 and 7,3 on two candidates cells => remove them elsewhere in the grid + row? + column?
+    def remove_candidates_if_formed_couples():
+        for row in range(9):
+            for column in range(9):
+                current_grid_number = get_grid_number(row, column)
+                current_grid = get_grid(candidates_board, current_grid_number)
+                flatten_grid = [item for sublist in current_grid for item in sublist]
+                for candidates in flatten_grid:
+                    if (len(candidates) == 2 and flatten_grid.count(candidates) > 1):
+                        if (candidates_board[row][column] != candidates):
+                            for item in candidates:
+                                if (item in candidates_board[row][column]):
+                                    candidates_board[row][column].remove(item)
+
+
+    remove_candidates_if_formed_couples()
+
+    #remove_double_formed_row_candidates()
     return candidates_board
 
 
@@ -349,7 +310,6 @@ def solver():
                     is_cell_valid(board_template, item_row, item_column, unique_item)
                     board_template[item_row][item_column] = unique_item
                     solver()
-                    continue
 
     fill_one_possibility_grid()
 
