@@ -20,6 +20,7 @@ def get_first_vertical_adjacent_grid(grid_number):
     elif grid_number == 9:
         return 3
 
+
 def get_second_vertical_adjacent_grid(grid_number):
     if grid_number < 1 or grid_number > 9:
         raise ValueError("Invalid grid number. Grid number should be between 1 and 9.")
@@ -42,6 +43,7 @@ def get_second_vertical_adjacent_grid(grid_number):
     elif grid_number == 9:
         return 6
 
+
 def get_first_horizontal_adjacent_grid(grid_number):
     if grid_number < 1 or grid_number > 9:
         raise ValueError("Invalid grid number. Grid number should be between 1 and 9.")
@@ -63,6 +65,7 @@ def get_first_horizontal_adjacent_grid(grid_number):
         return 7
     elif grid_number == 9:
         return 7
+
 
 def get_second_horizontal_adjacent_grid(grid_number):
     if grid_number < 1 or grid_number > 9:

@@ -1,6 +1,7 @@
 from find_missing_numbers import find_missing_numbers
 from flatten_unique import flatten_unique
 
+
 def find_all_cell_candidates(board_template, row, column):
     non_empty_cells = []
     # get all non empty cells in the current grid
@@ -13,7 +14,7 @@ def find_all_cell_candidates(board_template, row, column):
     # get all non empty cells in the current row
     non_empty_cells.append(board_template[row])
     # get all non empty cells in the current column
-    for i in range(0,9):
+    for i in range(0, 9):
         non_empty_cells.append(board_template[i][column])
 
     unique_non_empty_cells = flatten_unique(non_empty_cells)
