@@ -20,6 +20,8 @@ from get_grid_rows_index_by_row import get_grid_rows_index_by_row
 from is_candidate_unique_in_its_row import is_candidate_unique_in_its_row
 from is_candidate_in_both_other_row import is_candidate_in_both_other_row
 from is_cell_valid import is_cell_valid
+from find_occurrences import find_occurrences
+from itertools import combinations
 
 grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -70,20 +72,20 @@ empty_board = [
     [[], [], [], [], [], [], [], [], []],
     [[], [], [], [], [], [], [], [], []],
 ]
-
+candidates_board = [
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+    [[], [], [], [], [], [], [], [], []],
+]
 
 def fill_candidates():
-    candidates_board = [
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-        [[], [], [], [], [], [], [], [], []],
-    ]
+
     # find all candidates
     for row in range(0, 9):
         for column in range(0, 9):
@@ -214,41 +216,9 @@ def fill_candidates():
 
     remove_formed_row_candidates()
 
-    def remove_double_formed_row_candidates():
-        row = 6
-        column = 4
-        candidate = 1
-        current_grid_number = get_grid_number(row, column)
-        # current_grid = get_grid(candidates_board, current_grid_number)
-        # candidates = candidates_board[row][column]
-        first_horizontal_adjacent_grid_number = get_first_horizontal_adjacent_grid(
-            current_grid_number
-        )
-        first_grid_candidates = get_grid(
-            candidates_board, first_horizontal_adjacent_grid_number
-        )
-
-        # 1: determine if 2 rows are formed in first grid by candidate
-        formed_rows = []
-        for sub_row in range(3):
-            row_candidates = [
-                item for sublist in first_grid_candidates[sub_row] for item in sublist
-            ]
-            print("row_candidates", row_candidates)
-            if candidate in row_candidates:
-                formed_rows.append(sub_row)
-        print("first_grid_candidates", first_grid_candidates)
-        print("sub_row", sub_row)
-
-        # 2: determine if 2 same rows are formed in second grid
-        # 3: it means you can remove all candidate on the same 2 rows on current grid being checked
-
-        # for row in range(9):
-        #    for column in range(9):
-
 
     # add a rule for removing all couples if alone on these cells
-    # example: 7,3 and 7,3 on two candidates cells => remove them elsewhere in the grid + row? + column?
+    # example: 7,3 and 7,3 on two candidates cells => remove them elsewhere in the grid
     def remove_candidates_if_formed_couples():
         for row in range(9):
             for column in range(9):
@@ -264,6 +234,46 @@ def fill_candidates():
 
 
     remove_candidates_if_formed_couples()
+    remove_formed_column_candidates()
+    remove_formed_row_candidates()
+
+    # add a rule for removing all else then couples if couple formed
+    # example: 6,7,3 and 6,7,3 and 6,1 => remove 6 as 7,3 made a couple
+    def remove_other_than_couple():
+        for row in range(9):
+            for column in range(9):
+                current_grid_number = get_grid_number(row, column)
+                current_cell = candidates_board[row][column]
+                if len(current_cell) > 0:
+                    current_grid = get_grid(candidates_board, current_grid_number)
+                    flatten_grid = [item for sublist in current_grid for item in sublist]
+                    occurrences = find_occurrences(flatten_grid)
+                    pairs = []
+                    for figure in occurrences:
+                        if len(occurrences[figure]) == 2:
+                            pairs.append(figure)
+
+                    def generate_pairs(figures):
+                        pairs = [list(pair) for pair in combinations(figures, 2)]
+                        return pairs
+                    def count_pair_occurrences(grid, pairs):
+                        occurrences = {}
+                        for pair in pairs:
+                            count = 0
+                            for sublist in grid:
+                                if all(num in sublist for num in pair):
+                                    count += 1
+                            occurrences[tuple(pair)] = count
+                        return occurrences
+                    pairs = generate_pairs(pairs)
+                    pairs_counter = count_pair_occurrences(flatten_grid,pairs)
+                    current_cell = candidates_board[row][column]
+                    for pair, count in pairs_counter.items():
+                        if count == 2 and pair[0] in current_cell and pair[1] in current_cell:
+                            candidates_board[row][column] = list(pair)
+
+    remove_other_than_couple()
+
 
     #remove_double_formed_row_candidates()
     return candidates_board
